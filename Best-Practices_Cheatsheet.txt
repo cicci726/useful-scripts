@@ -1,0 +1,183 @@
+
+Short guide to scientific computational projects¶
+
+Core guiding principle: Someone unfamiliar with your project (including you, some time later) should be able to look at your files, understand what you did and why, and easily repeat it.
+
+Murphy’s Law for computational projects: For anything you do, you will probably have to repeat it again later (new data, new parameters, fixing bugs).
+
+General idea: Breaking a lengthy workflow into pieces makes it easier to understand, share, describe, and modify. Make your project modular, and the modules transparent and reproducible. This is important for you and for others.
+
+Fun fact: Sticking to good practices in a scientific computational project can save you a lot of time later, and make you (and others) a happier person.
+
+Organization of files and folders
+
+Stick to a standardized and self-explanatory directory structure. Essential text files like scripts and notes should be managed by a version control system (Git). Suggested organization:
+
+Suggested project structure for computational projects
+
+(compare to Noble 2009)
+
+Note: This structure is a suggestion, which has proven useful. It should be your starting point.
+
+    notes.txt (project notes/lab notebook):
+        chronologically organized; also useful for meetings/progress reports
+        simple text file is often good enough, but can be another format
+    requirements.txt: in case of conda- or pip-installed packages, you can do conda list --export >> requirements.txt to define the current environment in terms of all packages and their versions
+    doc/: has subfolders like doc/manuscript1/ for manuscript-related stuff
+    bin/: contains all code required to reproduce the project
+        there may be multiple bin/ folders that reside in experiment-specific subfolders (if this is more convenient)
+    sometimes there might be a src/ folder for source code (in this case, bin/ contains actual binaries)
+    data/ contains raw input data; possible naming schemes:
+        e.g. data/sample1/ (logical organization) or data/20180130/ (chronological)
+        data/sample2/ or data/20180131/, etc.
+    runall.sh: some people use a single driver script that runs all other scripts and generates all results; this can be useful, but less flexible than separate experiments with their own driver scripts
+    If Git is used: use .gitignore file to place only relevant files (*.py, *.txt, *.sh, *.R, *.md, ...) under version control
+
+Driver script (usually Bash)
+
+    Often includes calls to shell commands, Python scripts, R scripts (using Rscript, also see Rstudio docs) and precompiled programs
+    Automates every data processing step like creating the required directory structure
+    Records every performed operation (beware of manual editing of output files)
+    Contains informative comments that explain what's going on
+    Contains all relevant information like file and directory names and passes them as arguments to other scripts/programs
+    Stores paths and constants as variables in a separate section in the beginning ("variable section"). Think of it as a configuration section. This makes the code structure clearer, and code modifications easier.
+    Uses relative paths (if project folder is transferred to another location, it still works)
+    Uses set -euxo pipefail options (or some of them) for safer scripting
+    Checks data consistency/plausibility frequently to make sure that nothing unexpected happened (and the results make sense)
+    Uses if (output_file does not exist), then <perform operation> constructs to easily repeat parts of the experiment (after deletion of the respective output files)
+    The environment in which the driver script operates should be clearly defined (required tools/databases and their versions); make sure that everything actually works if run in the defined environment!
+
+Alternative: Notebooks
+
+    Jupyter notebooks or R notebooks (R notebooks have some advantages, including easier version control; Jupyter notebooks have other advantages, and can be enhanced by plugins)
+    Notebooks combine code, explanatory text and results. They are great for data exploration, but less suitable for code development or complex workflows involving different programs.
+    Notebooks are a useful data science tool if used properly: should be well named, clearly structured, informatively commented.
+    Great for sharing reproducible workflows and results with other people.
+
+Scripts in general
+
+    Developing code should always start with clear specifications of what the code is supposed to do when ready, in terms of input and output. Put it in a comment section in the beginning.
+    Start development with pseudocode (or flowchart) that outlines the script logic. This is very helpful even for simple scripts. Translate the pseudocode into code step by step.
+    Always provide skeletal documentation (basic usage information). Every script should have one, no matter how short.
+    Provide simple examples/test cases to demonstrate how the script is used and that it works as expected; this is also helpful for others.
+    The same applies to functions:
+        Every function/method must have a docstring that briefly describes the arguments and the return value (examples).
+        Python doctests are simple test cases in docstrings, which are useful as basic usage examples and documentation
+        Python type hints can help in development, documentation and debugging
+    Adopt iterative and incremental development: start with a minimalistic working version, keep changes small, test frequently.
+        Can include empty functions, that specify what they do in the docstring and consist of a pass statement.
+    Write modular code, i.e., short, single-purpose functions/scripts with clearly defined inputs and outputs → readable, reusable, and testable; avoid “swiss-army-knife” design that does many different things
+    Scripts should break immediately if something is wrong: check consistency whenever possible (assert in Python), e.g. input arguments should have the expected type and make sense, files shouldn't be empty, results should be consistent, etc.
+    Don't Repeat Yourself: Code duplication is usually a sign of poor program design; copying/pasting code is cheap for solving the immediate problem, but dangerous medium/long term
+    Look for well-maintained libraries that help you do what you’re trying to do before writing your own code
+    Stick to best practices for writing code: respect language-specific style guidelines (Python: PEP8) and use code checkers (Python: Flake8 and pylint)
+        Many IDEs provide built-in code analysis (e.g. Spyder, VS Code)
+        Running code checkers and testing can be annoying, but still better than retracting a publication because of a bug (ivory blog)
+        Always assume that you might have to share your code later with other people (ivory blog)
+    Get to know your IDE to improve productivity (e.g. Spyder, VS Code, PyCharm, Atom + Hydrogen, vim + plugins; Jupyter + plugins is great for data analysis, but not necessarily for code development)
+
+
+Style guide (xkcd.com/1513)
+
+Code development and version control
+
+    A version control system (VCS) stores snapshots of a project’s files in a repository. This has advantages like:
+        Backup of all scripts and project notes
+        Keeps track of changes (versions/tags), so you don’t need file names like script_v1.py, script_v1.2.py, script_final.py, script_really_final.py, script_absolutely_final.py etc.
+        Allows code modifications (branches) without breaking existing functionality, facilitates conflict resolution
+    If you collaborate with others, you definitely want VCS
+    If you work on a larger codebase, you definitely want VCS
+    Just use VCS. It’s really cool, and helps with all kinds of stuff. A popular combination is Git + GitHub.
+    A VCS is intended for use with text files that are essential to reproducing your project:
+        Most importantly, all data processing scripts (e.g. Python, R, Bash), scientific notes and related text files. Put them all under version control.
+        Large and/or binary files are NOT intended for use with VCS:
+            Raw data and, in general, large files and binary files (raw data should be backed up elsewhere)
+            Automatically generated files like intermediate and result files (can be re-calculated if required)
+    Further reading:
+        "A Quick Introduction to Version Control with Git and GitHub" (Blischak et al., 2016)
+        "Ten Simple Rules for Taking Advantage of Git and GitHub" (Perez-Riverol et al., 2016)
+        Stackoverflow, Datascience-Stackexchange, Bioinformatics-Stackexchange
+
+Basic data management
+
+    Save raw data in a separate directory (data/ or raw_data/), and make it read-only
+    Never duplicate (data) files unless necessary, use symbolic links instead
+    Keep large files compressed (gzip)
+    Back up crucial files like raw data files, scripts and notes/documentation in at least two spatially distinct locations (external drive next to the computer is not good enough in case of fire/theft/alien attack/etc.); use a backup tool like Borg backup that provides deduplication (save identical files only once), compression and encryption
+    Make data analysis-friendly:
+        Convert to open, non-proprietary, standardized formats that can be easily re-used later
+        Modify cryptic variable names and file names to make them more informative
+        Tidy up the data
+    Directory names:
+        chronological: name is a date, e.g. 2018-03-15 (YYYY-MM-DD naming scheme for better sorting); useful if you have many experiments of the same type differing by date
+        logical: name is an abstraction of the content, e.g. assembly_first
+        semi-logical (often best option): name starts with number or date → sequence of steps (e.g. 01_filter, 02_parse, 03_visualization, etc.)
+    Name files to reflect their function or content in chronological order, e.g. a file name like dna_sample1.trimmed.filtered.assembled.filtered.fasta tells you exactly what happened to the data (what did happen to the data?)
+    Temporary file names should be distinct from permanent file names, so you know which files are incomplete or irrelevant
+        You can rename files in a separate step; e.g. while writing to a file, give it a temporary file name like result_file_1.txt.tmp, and rename it in a separate line: mv result_file_1.txt.tmp result_file_1.txt
+    Delete unnecessary files, especially if they can be easily recalculated (time/storage tradeoff) – keep your workspace clean
+        E.g. intermediate/temporary files, or experimental files after trying something out
+        Do it as soon as possible, will be harder later on
+    Archive inactive projects in a separate archive directory, packed as .tar.gz
+    Share your data using scientific online repositories
+
+A developer's perfect date
+
+Basic project management
+
+Having an interesting idea and working on it until you get great results often leads to frustration rather than success. (Maybe this is why ~90% of New Year's resolutions fail.) Instead, you should view every undertaking as a project and allocate additional time for project management.
+
+    Start out with project planning. Define project goals/objectives (direction you're attempting to move in, and specific and measurable outcomes)
+        This defines the project scope, the body of work required to successfully accomplish the project; the scope determines the boundaries of the project, and tells what is in scope (necessary for project success) and out of scope (waste of time, at least for project success)
+    Outline the milestones necessary to reach the objectives – each milestone should correspond to results (deliverables), tangible things created from your work, that can be presented as a short progress report
+        Draft a project schedule using e.g. a Gantt chart or a network diagram
+        The current project status should always be transparent to you, your PI and your collaborators.
+    Outline the work packages (specific steps) required to reach each milestone
+    Assess the time and resources required to complete each work package
+        Each work package should be disassembled into single steps, as fine-grained as possible; you can create a TODO file
+        Think about possible difficulties in advance and how you can overcome them (risk analysis; trivial example: if the project is to read a book, and there is a risk that it's too dark to read, you can plan for getting a lamp or reading during the day)
+    Reserve time for work packages in a (online) calendar in advance
+        Prioritize according to the Eisenhower method (example)
+    Use the reserved time to complete the work packages
+    Regularly re-evaluate the project progression, and adapt the planning if required. If the anticipated cost-to-benefit ratio of the project drops below zero longer-term, abandon the project.
+
+Collaborating on computational projects
+
+    Communication is key; create a framework for talking regularly and discussing experimental and computational progress. (When people just send over data or problem descriptions and wait for the solution — most likely it will be inadequate)
+    Design experiments and analyses together and prepare for multiple iterations
+    Use a VCS like Git to manage changes to a project, and make the repository accessible for your collaborators
+    Keep changes small (= group of edits that you might want to undo in one step), share changes frequently (synchronize your progress with the progress of others), use an additional checklist (log file) for keeping track of and sharing changes to the project
+    Daily backup: Store each project in a folder that is daily mirrored to Dropbox or a remote repository like GitHub (and/or use some automated daily backup system)
+
+Basic manuscript management
+
+    Agree with all authors on the workflow before the writing starts
+    Keep a single master document online which allows to track changes and is available to all co-authors, using a platform such as Google Docs
+    Alternatively, keep the manuscript in plain text format under version control, using LaTeX or Markdown
+    Keep supplementary materials in separate text-format files for easier re-use by others
+
+Beware of ...
+
+    Manual modification of output files
+        Workflow becomes non-reproducible
+        You WILL forget later what you did
+    Messy workspace
+        with lots of different files lying around, taking up space and making you nervous (sounds funny, but this is what actually happens)
+    Poorly tested/unjustified analysis steps
+        Using non-default parameters, unpublished tools or untested workflows without very good reason → this will be much, much harder to publish
+    “Overfitting”
+        Fine-tuning the workflow (e.g. tool parameters) to achieve the "desired" results
+        The results may become slightly better, but less reproducible and harder to publish
+    Confirmation bias (human tendency to handle information in a way that confirms one’s preexisting beliefs or hypotheses)
+        Don’t "adapt" the analysis to your ideas about what the results should be; this might give seemingly better results short-term, but will cause more problems long-term
+        This is not the same as optimizing the workflow by identifying the tools/approaches best-suited for your data to obtain good results :)
+        Rule of thumb: A good result is often stable towards changes in parameters and even analysis methods. If it is not, it might not be a reliable result.
+
+Links
+
+    The Carpentries: Software Carpentry, Data Carpentry
+    Noble WS. 2009. A Quick Guide to Organizing Computational Biology Projects. PLOS Computational Biology. 5(7):e1000424. doi:10.1371/journal.pcbi.1000424.
+    Wilson G et al. 2017. Good enough practices in scientific computing. PLOS Computational Biology. 13(6):e1005510. doi:10.1371/journal.pcbi.1005510.
+    Blischak JD et al. 2016. A Quick Introduction to Version Control with Git and GitHub. PLOS Computational Biology. 12(1):e1004668. doi:10.1371/journal.pcbi.1004668.
+    Sandve GK et al. 2013. Ten Simple Rules for Reproducible Computational Research. PLOS Computational Biology. 9(10): e1003285. https://doi.org/10.1371/journal.pcbi.1003285
+
